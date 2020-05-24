@@ -3,7 +3,11 @@
 
 MPR121.init()
 basic.forever(function () {
-    serial.writeValue("x", MPR121.getValue())
+    for (let i = 0; i < 12; i++) {
+        serial.writeNumber(i)
+        serial.writeValue("x = ", MPR121.getValue(i))
+    }
+
     basic.pause(100)
 })
 
