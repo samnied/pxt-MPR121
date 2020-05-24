@@ -1,20 +1,20 @@
 
+enum channel {
+    ch0 = 8,
+    ch1 = 9,
+    ch2 = 10,
+    ch3 = 11,
+
+    ch8 = 0,
+    ch9 = 1,
+    ch10 = 2,
+    ch11 = 3
+}
+
 //% weight=100 color=#0fbc11 icon=""
 namespace MPR121 {
-    enum channel
-    {
-        ch0 = 8,
-        ch1 = 9,
-        ch2 = 10,
-        ch3 = 11,
 
-        ch8 = 0,
-        ch9 = 1,
-        ch10 = 2,
-        ch11 = 3
-    }
-    enum register
-    {
+    enum register {
         MPR121_TOUCHSTATUS_L = 0x00,
         MPR121_TOUCHSTATUS_H = 0x01,
         MPR121_FILTDATA_0L = 0x04,
@@ -60,10 +60,10 @@ namespace MPR121 {
     const ADDRESS = 0x5B
 
     // default touch threshold value
-    const TOUCH_THRESHOLD_DEFAULT = 12  
-    const MPR121_RELEASE_THRESHOLD_DEFAULT =  6 
+    const TOUCH_THRESHOLD_DEFAULT = 12
+    const MPR121_RELEASE_THRESHOLD_DEFAULT = 6
 
-    function writeRegister(reg: number, value: number): void{
+    function writeRegister(reg: number, value: number): void {
         pins.i2cWriteNumber(ADDRESS, (reg << 8) | value, NumberFormat.UInt16BE)
     }
     function setThresholds(touch: number, release: number): void {
@@ -86,8 +86,8 @@ namespace MPR121 {
         basic.pause(1)
         writeRegister(register.MPR121_ECR, 0x00);
 
-        setThresholds(register.MPR121_TOUCH_THRESHOLD_DEFAULT, 
-                        register.MPR121_RELEASE_THRESHOLD_DEFAULT);
+        setThresholds(register.MPR121_TOUCH_THRESHOLD_DEFAULT,
+            register.MPR121_RELEASE_THRESHOLD_DEFAULT);
 
         writeRegister(register.MPR121_MHDR, 0x01);
         writeRegister(register.MPR121_NHDR, 0x01);
@@ -107,8 +107,7 @@ namespace MPR121 {
         writeRegister(register.MPR121_CONFIG1, 0x10); // default, 16uA charge current
         writeRegister(register.MPR121_CONFIG2, 0x20); // 0.5uS encoding, 1ms period
 
-        if (autoconfig)
-        {
+        if (autoconfig) {
             writeRegister(register.MPR121_AUTOCONFIG0, 0x0B);
 
             // correct values for Vdd = 3.3V
@@ -116,7 +115,7 @@ namespace MPR121 {
             writeRegister(register.MPR121_TARGETLIMIT, 180); // UPLIMIT * 0.9
             writeRegister(register.MPR121_LOWLIMIT, 130);    // UPLIMIT * 0.65
         }
-        
+
 
         // enable X electrodes and start MPR121
         let ECR_SETTING = 0B10000000 + 12; // 5 bits for baseline tracking & proximity disabled + X
@@ -125,10 +124,13 @@ namespace MPR121 {
     }
 
     //%block
-    export function getValue(ch: channel): number{
+    export function getValue(ch: channel): boolean {
         writeRegister(register.MPR121_TOUCHSTATUS_L, 0x00)
         let tStat = 0x0FFF & pins.i2cReadNumber(ADDRESS, NumberFormat.UInt16BE);
-        return tStat & (1<<ch)
+        if (tStat & (1 << ch))
+            return true
+        else
+            return false
     }
-   
+
 }
