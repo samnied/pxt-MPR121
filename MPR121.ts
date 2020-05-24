@@ -67,7 +67,7 @@ namespace MPR121 {
         }
     }
     //% block
-    export function init(): boolean {
+    export function init(): number {
         /*
         // soft reset
         writeRegister(register.MPR121_SOFTRESET, 0x63);
@@ -78,14 +78,12 @@ namespace MPR121 {
         let c = pins.i2cReadNumber(ADDRESS, NumberFormat.UInt8BE);
 */
         // soft reset
+        pins.i2cWriteNumber(ADDRESS, 0x5E00, NumberFormat.UInt16BE)
         pins.i2cWriteNumber(ADDRESS, 0x8063, NumberFormat.UInt16BE);
         pins.i2cWriteNumber(ADDRESS, 0x5E00, NumberFormat.UInt16BE);
         pins.i2cWriteNumber(ADDRESS, 0x5D00, NumberFormat.UInt16BE);
         let c = pins.i2cReadNumber(ADDRESS, NumberFormat.UInt8BE);
-        if (c != 0x24)
-            return false
-        else
-            return true
+        return (register.MPR121_SOFTRESET << 8) | 0x63
     }
 
    
