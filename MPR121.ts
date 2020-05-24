@@ -1,14 +1,14 @@
 
 enum channel {
-    ch0 = 8,
-    ch1 = 9,
-    ch2 = 10,
-    ch3 = 11,
+    CH0 = 8,
+    CH1 = 9,
+    CH2 = 10,
+    CH3 = 11,
 
-    ch8 = 0,
-    ch9 = 1,
-    ch10 = 2,
-    ch11 = 3
+    CH8 = 0,
+    CH9 = 1,
+    CH10 = 2,
+    CH11 = 3
 }
 
 //% weight=100 color=#0fbc11 icon=""
@@ -77,7 +77,7 @@ namespace MPR121 {
         // turn the sensor on again
         writeRegister(register.MPR121_ECR, 0x8F);
     }
-    //% block
+    //% block="init touch sensor"  
     export function init(): void {
         let autoconfig = false
 
@@ -123,7 +123,7 @@ namespace MPR121 {
         writeRegister(register.MPR121_ECR, ECR_SETTING); // start with above ECR setting
     }
 
-    //%block
+    //%block="%ch| is touched" 
     export function getValue(ch: channel): boolean {
         writeRegister(register.MPR121_TOUCHSTATUS_L, 0x00)
         let tStat = 0x0FFF & pins.i2cReadNumber(ADDRESS, NumberFormat.UInt16BE);
