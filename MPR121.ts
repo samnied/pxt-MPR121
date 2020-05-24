@@ -115,8 +115,7 @@ namespace MPR121 {
     //%block
     export function getValue(): number{
         writeRegister(register.MPR121_TOUCHSTATUS_L, 0x00)
-        let t = pins.i2cReadNumber(ADDRESS, NumberFormat.UInt16BE);
-        return t & 0x0FFF;
+        return pins.i2cReadNumber(ADDRESS, NumberFormat.UInt16BE);
     }
    
 }

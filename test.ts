@@ -3,5 +3,7 @@
 
 MPR121.init()
 basic.forever(function () {
-
+    serial.writeValue("x", MPR121.getValue())
+    basic.pause(100)
 })
+
