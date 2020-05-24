@@ -4,8 +4,10 @@
 MPR121.init()
 basic.forever(function () {
     for (let i = 0; i < 12; i++) {
-        serial.writeNumber(i)
-        serial.writeValue("x = ", MPR121.getValue(i))
+        if (MPR121.getValue(i)) {
+
+            serial.writeValue("touched", i)
+        }
     }
 
     basic.pause(100)

@@ -1,6 +1,18 @@
 
 //% weight=100 color=#0fbc11 icon=""
 namespace MPR121 {
+    enum channel
+    {
+        ch0 = 8,
+        ch1 = 9,
+        ch2 = 10,
+        ch3 = 11,
+
+        ch8 = 0,
+        ch9 = 1,
+        ch10 = 2,
+        ch11 = 3
+    }
     enum register
     {
         MPR121_TOUCHSTATUS_L = 0x00,
@@ -113,10 +125,10 @@ namespace MPR121 {
     }
 
     //%block
-    export function getValue(channel: number): number{
+    export function getValue(ch: channel): number{
         writeRegister(register.MPR121_TOUCHSTATUS_L, 0x00)
         let tStat = 0x0FFF & pins.i2cReadNumber(ADDRESS, NumberFormat.UInt16BE);
-        return tStat & (1<<channel)
+        return tStat & (1<<ch)
     }
    
 }
