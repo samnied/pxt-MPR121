@@ -40,51 +40,83 @@ namespace MPR121 {
         MPR121_GPIOCLR = 0x79,
         MPR121_GPIOTOGGLE = 0x7A,
 
-        MPR121_SOFTRESET = 0x80
+        MPR121_SOFTRESET = 0x80,
+
+        MPR121_TOUCH_THRESHOLD_DEFAULT = 12,
+        MPR121_RELEASE_THRESHOLD_DEFAULT = 6
     }
-    let ADDRESS = 0x5B
+    const ADDRESS = 0x5B
+
+    // default touch threshold value
+    const TOUCH_THRESHOLD_DEFAULT = 12  
+    const MPR121_RELEASE_THRESHOLD_DEFAULT =  6 
 
     function writeRegister(reg: number, value: number): void{
-        // MPR121 must be put in Stop Mode to write to most registers
-        
-        let stop_required = true;
-        let ECR = pins.i2cReadNumber(ADDRESS, NumberFormat.UInt8BE);
-        // first get the current set value of the MPR121_ECR register
-        
-        if (reg == register.MPR121_ECR || (0x73 <= reg && reg <= 0x7A)) {
-            stop_required = false;
+        pins.i2cWriteNumber(ADDRESS, (reg << 8) | value, NumberFormat.UInt16BE)
+    }
+    function setThresholds(touch: number, release: number): void {
+        // first stop sensor to make changes
+        writeRegister(register.MPR121_ECR, 0x00);
+        // set all thresholds (the same)
+        for (let i = 0; i < 12; i++) {
+            writeRegister(register.MPR121_TOUCHTH_0 + 2 * i, touch);
+            writeRegister(register.MPR121_RELEASETH_0 + 2 * i, release);
         }
-        if (stop_required) {
-            pins.i2cWriteNumber(ADDRESS, register.MPR121_ECR, NumberFormat.UInt8BE, true)
-            pins.i2cWriteNumber(ADDRESS, 0x00, NumberFormat.UInt8BE)
-        }
-        pins.i2cWriteNumber(ADDRESS, reg, NumberFormat.UInt8BE, true)
-        pins.i2cWriteNumber(ADDRESS, value, NumberFormat.UInt8BE)
-
-        if (stop_required) {
-            pins.i2cWriteNumber(ADDRESS, register.MPR121_ECR, NumberFormat.UInt8BE, true)
-            pins.i2cWriteNumber(ADDRESS, ECR, NumberFormat.UInt8BE)
-        }
+        // turn the sensor on again
+        writeRegister(register.MPR121_ECR, 0x8F);
     }
     //% block
-    export function init(): number {
-        /*
+    export function init(): void {
+        let autoconfig = false
+
         // soft reset
         writeRegister(register.MPR121_SOFTRESET, 0x63);
         basic.pause(1)
         writeRegister(register.MPR121_ECR, 0x00);
 
-        pins.i2cWriteNumber(ADDRESS, register.MPR121_CONFIG2, NumberFormat.UInt8BE)
-        let c = pins.i2cReadNumber(ADDRESS, NumberFormat.UInt8BE);
-*/
-        // soft reset
-        pins.i2cWriteNumber(ADDRESS, 0x5E00, NumberFormat.UInt16BE)
-        pins.i2cWriteNumber(ADDRESS, 0x8063, NumberFormat.UInt16BE);
-        pins.i2cWriteNumber(ADDRESS, 0x5E00, NumberFormat.UInt16BE);
-        pins.i2cWriteNumber(ADDRESS, 0x5D00, NumberFormat.UInt16BE);
-        let c = pins.i2cReadNumber(ADDRESS, NumberFormat.UInt8BE);
-        return (register.MPR121_SOFTRESET << 8) | 0x63
+        setThresholds(register.MPR121_TOUCH_THRESHOLD_DEFAULT, 
+                        register.MPR121_RELEASE_THRESHOLD_DEFAULT);
+
+        writeRegister(register.MPR121_MHDR, 0x01);
+        writeRegister(register.MPR121_NHDR, 0x01);
+        writeRegister(register.MPR121_NCLR, 0x0E);
+        writeRegister(register.MPR121_FDLR, 0x00);
+
+        writeRegister(register.MPR121_MHDF, 0x01);
+        writeRegister(register.MPR121_NHDF, 0x05);
+        writeRegister(register.MPR121_NCLF, 0x01);
+        writeRegister(register.MPR121_FDLF, 0x00);
+
+        writeRegister(register.MPR121_NHDT, 0x00);
+        writeRegister(register.MPR121_NCLT, 0x00);
+        writeRegister(register.MPR121_FDLT, 0x00);
+
+        writeRegister(register.MPR121_DEBOUNCE, 0);
+        writeRegister(register.MPR121_CONFIG1, 0x10); // default, 16uA charge current
+        writeRegister(register.MPR121_CONFIG2, 0x20); // 0.5uS encoding, 1ms period
+
+        if (autoconfig)
+        {
+            writeRegister(register.MPR121_AUTOCONFIG0, 0x0B);
+
+            // correct values for Vdd = 3.3V
+            writeRegister(register.MPR121_UPLIMIT, 200);     // ((Vdd - 0.7)/Vdd) * 256
+            writeRegister(register.MPR121_TARGETLIMIT, 180); // UPLIMIT * 0.9
+            writeRegister(register.MPR121_LOWLIMIT, 130);    // UPLIMIT * 0.65
+        }
+        
+
+        // enable X electrodes and start MPR121
+        let ECR_SETTING = 0B10000000 + 12; // 5 bits for baseline tracking & proximity disabled + X
+        // amount of electrodes running (12)
+        writeRegister(register.MPR121_ECR, ECR_SETTING); // start with above ECR setting
     }
 
+    //%block
+    export function getValue(): number{
+        writeRegister(register.MPR121_TOUCHSTATUS_L, 0x00)
+        let t = pins.i2cReadNumber(ADDRESS, NumberFormat.UInt16BE);
+        return t & 0x0FFF;
+    }
    
 }
