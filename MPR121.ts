@@ -11,9 +11,8 @@ enum channel {
     CH11 = 3
 }
 
-//% weight=100 color=#0fbc11 icon=""
+//% weight=100 color=#0fbc11 icon="icon= "\uf25a" block="MPR121 touch sensor"
 namespace MPR121 {
-
     enum register {
         MPR121_TOUCHSTATUS_L = 0x00,
         MPR121_TOUCHSTATUS_H = 0x01,
